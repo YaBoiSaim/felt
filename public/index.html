@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0c1714" />
+  <meta name="description" content="A private, just-for-fun Texas Hold'em table for friends. Play chips only." />
+  <title>Felt — poker with friends</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="/socket.io/socket.io.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">♠</span><span>FELT<span class="brand-period">.</span></span><span class="brand-note">FRIENDS EDITION</span></div>
+    <div class="topbar-right"><span id="connectionPill" class="connection-pill"><span class="status-dot"></span>Connecting</span><span class="play-only">PLAY CHIPS ONLY</span></div>
+  </header>
+
+  <main>
+    <section id="landing" class="landing">
+      <div class="landing-copy">
+        <div class="eyebrow"><span class="sparkle">✦</span> THE PRIVATE POKER ROOM</div>
+        <h1>Good cards.<br/><em>Better company.</em></h1>
+        <p>Texas Hold’em, right in your browser. Bring your friends, grab a seat, and play with free virtual chips. No downloads. No money. Just the game.</p>
+        <div class="landing-stats"><span><span class="stat-icon">✓</span> 2–8 players</span><span><span class="stat-icon">✓</span> Private invite links</span><span><span class="stat-icon">✓</span> 100% free</span></div>
+      </div>
+      <div class="entry-card">
+        <div class="entry-title"><div><span class="micro-heading">READY WHEN YOU ARE</span><h2>Take a seat.</h2></div><div class="card-symbol" aria-hidden="true">A<span>♠</span></div></div>
+        <label for="nickname">YOUR DISPLAY NAME</label>
+        <input id="nickname" maxlength="18" placeholder="What should we call you?" autocomplete="nickname" />
+        <button id="createBtn" class="button primary big">Create a private table <span aria-hidden="true">↗</span></button>
+        <div class="or-divider"><span>OR JOIN YOUR FRIENDS</span></div>
+        <label for="joinCode">5-CHARACTER ROOM CODE</label>
+        <div class="join-inline"><input id="joinCode" maxlength="5" placeholder="e.g. K7P3W" autocomplete="off" autocapitalize="characters" /><button id="joinBtn" class="button light">Join table →</button></div>
+        <div class="entry-foot">Each player starts with <strong>1,500 play chips</strong>. No accounts needed.</div>
+      </div>
+      <div class="preview-art" aria-hidden="true"><span class="preview-card card-one">K<span>♥</span></span><span class="preview-card card-two">A<span>♠</span></span><div class="preview-chip chip-1"></div><div class="preview-chip chip-2"></div></div>
+    </section>
+
+    <section id="game" class="game" hidden>
+      <div class="game-header">
+        <div class="room-details"><span class="micro-heading">PRIVATE TABLE <span class="small-separator">/</span> NO STAKES</span><h2>Friday Night Hold’em <span class="game-heading-star">✦</span></h2></div>
+        <div class="room-utilities"><div class="room-code-wrap"><span>ROOM CODE</span><strong id="roomCode">—</strong></div><button id="copyInvite" class="button light small">Copy invite link <span aria-hidden="true">↗</span></button><button id="leaveBtn" class="button outline small">Leave table</button></div>
+      </div>
+      <div class="game-layout">
+        <div class="primary-column">
+          <div class="table-shell">
+            <div class="table-surface" aria-label="Texas Hold'em poker table">
+              <div class="table-rim"></div><div class="felt-texture"></div>
+              <div class="table-brand" aria-hidden="true">FELT<span>.</span><small>FRIENDS EDITION</small></div>
+              <div class="pot-display"><span id="potLabel">TOTAL POT</span><div><span class="coin mini"></span><strong id="potAmount">0</strong></div></div>
+              <div id="board" class="board-cards" aria-label="Community cards"></div>
+              <div id="players" class="players"></div>
+            </div>
+            <div class="round-indicator"><span id="phaseLabel">WAITING ROOM</span><span id="handIndicator">HAND #0</span><span id="playerCount">1 / 8 PLAYERS</span></div>
+          </div>
+          <div id="resultBanner" class="result-banner" hidden></div>
+          <div class="actions-panel">
+            <div class="actions-top"><div><span class="micro-heading">YOUR NEXT MOVE</span><h3 id="actionTitle">Waiting for the table</h3></div><span id="yourChips" class="you-chip-count"><span class="coin mini"></span>1,500</span></div>
+            <div id="actionDescription" class="action-description">Invite a friend to get started.</div>
+            <div id="actionButtons" class="action-buttons" hidden>
+              <button id="foldBtn" class="button fold">Fold</button><button id="checkCallBtn" class="button light">Check</button><button id="allinBtn" class="button outline">All-in</button>
+              <div class="raise-group"><div class="raise-top"><label for="raiseAmount">RAISE TO</label><input id="raiseAmount" type="number" min="20" step="1" inputmode="numeric" /></div><input id="raiseSlider" type="range" min="20" max="1500" value="20" step="1" /><button id="raiseBtn" class="button primary">Raise</button></div>
+            </div>
+            <div id="waitingActions" class="waiting-actions"><button id="startBtn" class="button primary" hidden>Start the game →</button><button id="refillBtn" class="button outline" hidden>Reset to 1,500 chips</button><span id="waitingNote">You can invite more players at any time.</span></div>
+          </div>
+        </div>
+        <aside class="sidebar">
+          <section class="panel roster-panel"><div class="panel-title"><span>SEATS AT THE TABLE</span><span id="seatCounter" class="count-pill">0 / 8</span></div><div id="roster" class="roster"></div></section>
+          <section class="panel chat-panel"><div class="panel-title"><span>TABLE TALK</span><span class="live-label"><span class="status-dot"></span> LIVE</span></div><div id="chatMessages" class="chat-messages" aria-live="polite"></div><form id="chatForm" class="chat-form"><input id="chatInput" maxlength="220" aria-label="Chat message" placeholder="Say something..." autocomplete="off" /><button type="submit" class="chat-send" aria-label="Send message">➤</button></form></section>
+          <div class="side-footer">SHUFFLED FAIRLY · FRIENDS ONLY · JUST FOR FUN</div>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
+  <footer id="landingFooter" class="site-footer"><span>FELT<span class="brand-period">.</span> — A BETTER WAY TO HANG OUT</span><span>NO PURCHASES. NO PRIZES. NO REAL MONEY.</span></footer>
+</body>
+</html>
